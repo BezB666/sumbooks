@@ -1,0 +1,11 @@
+extract/
+index/
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+
+# исходники книг — чужие авторские материалы, в репозиторий не попадают
+books/
+*.pdf
+*.epub
