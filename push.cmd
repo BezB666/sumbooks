@@ -35,39 +35,36 @@ rem --- 1. Stage everything except ignored files ---
 git add . >>"%LOG%" 2>&1
 if errorlevel 1 goto :fail
 
-rem --- 2. Collect staged changes: names of changed top-level folders/files ---
-set "SCOPE="
-for /f "delims=" %%f in ('git diff --cached --name-only') do (
-    for /f "delims=/" %%d in ("%%f") do (
-        set "PART=%%d"
-        rem a path inside a folder looks like "folder/file.md" -> %%d is the folder
-        rem a plain root file has no slash -> %%d is "" (empty), then use the file name
-        if "!PART!"=="" set "PART=%%~nf"
-        rem a folder itself appears as "folder/" -> strip the trailing slash artefact
-        if "!PART!"=="%%f" if "!PART:~-1!"=="/" set "PART=!PART:~0,-1!"
-        echo !SCOPE! | findstr /i /c:"|!PART!|" >nul
-        if errorlevel 1 set "SCOPE=!SCOPE!|!PART!|"
-    )
-)
-
-if not defined SCOPE goto :clean
+rem --- 2. Nothing staged? Just make sure the remote is up to date ---
+git diff --cached --quiet >nul 2>&1
+if not errorlevel 1 goto :clean
 
 rem --- 3. Commit message: argument, or "update <folders>" ---
+rem delims=/ splits each staged path and for /f keeps only the FIRST component,
+rem which is exactly the top-level folder (or the file name for root files).
+set "SCOPE="
+for /f "delims=/" %%d in ('git diff --cached --name-only') do (
+    if not "%%d"=="" echo !SCOPE! | findstr /i /c:"|%%d|" >nul
+    if not "%%d"=="" if errorlevel 1 set "SCOPE=!SCOPE!|%%d|"
+)
+
+rem --- 4. Commit message: argument, or "update <folders>" ---
 set "MSG=%~1"
 if "%MSG%"=="" (
     set "LIST=!SCOPE:|=%"
     set "LIST=!LIST:|=, !"
+    if "!LIST!"=="" set "LIST=changes"
     set "MSG=update !LIST!"
 )
 
 echo.
-echo Commit message: %MSG%
+echo Commit message: !MSG!
 echo.
 
-git commit -m "%MSG%" >>"%LOG%" 2>&1
+git commit -m "!MSG!" >>"%LOG%" 2>&1
 if errorlevel 1 goto :fail
 
-rem --- 4. Push (sets upstream on first run) ---
+rem --- 5. Push (sets upstream on first run) ---
 git push -u origin main >>"%LOG%" 2>&1
 if errorlevel 1 goto :fail
 
@@ -93,12 +90,12 @@ set "WEB=!WEB:git@github.com:=https://github.com/!"
 
 echo ============================================
 echo  Done: changes pushed to GitHub.
-echo  Commit:  !HASH!
 echo  Repo:    !WEB!
 echo  Commit:  !WEB!/commit/!HASH!
 echo  Log:     %LOG%
 echo ============================================
-echo Pushed !HASH! to !WEB!>>"%LOG%"
+echo Pushed !HASH! to !WEB!/commit/!HASH!>>"%LOG%"
+endlocal
 exit /b 0
 
 rem ============================================================
@@ -112,4 +109,5 @@ echo    - conflict: run "git pull --rebase" first
 echo  Full output: %LOG%
 echo ============================================
 echo FAILED with exit code %errorlevel% - see log above>>"%LOG%"
+endlocal
 exit /b 1
