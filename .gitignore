@@ -9,3 +9,6 @@ __pycache__/
 books/
 *.pdf
 *.epub
+
+# лог работы push.cmd — локальный
+push.log

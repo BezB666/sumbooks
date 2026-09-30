@@ -2,57 +2,106 @@
 rem ============================================================
 rem  push.cmd - commit all changes and push them to GitHub
 rem  Usage:
-rem     push.cmd                  - auto commit message
+rem     push.cmd                  - auto commit message (from changed folders)
 rem     push.cmd "commit message"  - your own message
+rem  Everything is mirrored to push.log next to this file.
 rem  NOTE: keep this file ASCII-only, cmd.exe reads .cmd in the
 rem        system codepage (cp866) and mangles UTF-8 text.
 rem ============================================================
 
+setlocal enabledelayedexpansion
 cd /d "%~dp0"
+
+set "LOG=push.log"
+
+set "STAMP=%DATE% %TIME%"
+echo.>>"%LOG%"
+echo === %STAMP% ===>>"%LOG%"
 
 echo === Branch and remote ===
 git branch --show-current
 git remote -v
 echo.
 
-echo === Changes to commit ===
-git status --short
-echo.
-
-rem --- 1. Stage everything except ignored files ---
-git add .
-if errorlevel 1 goto :fail
-
-rem --- 2. Nothing staged? Just make sure the remote is up to date ---
-git diff --cached --quiet
-if not errorlevel 1 (
-    echo Nothing to commit: working tree is clean.
-    echo Checking for unpushed commits...
-    git push
-    if errorlevel 1 goto :fail
-    echo.
-    echo Done.
-    exit /b 0
+rem --- 0. Are we on main? Committing to another branch is usually a mistake ---
+for /f "delims=" %%b in ('git branch --show-current') do set "BRANCH=%%b"
+if /i not "%BRANCH%"=="main" (
+    echo WARNING: current branch is "%BRANCH%", not "main".
+    echo   This script pushes to main. Press Ctrl+C to abort, or
+    pause
 )
 
-rem --- 3. Commit message: argument or auto-generated ---
+rem --- 1. Stage everything except ignored files ---
+git add . >>"%LOG%" 2>&1
+if errorlevel 1 goto :fail
+
+rem --- 2. Collect staged changes: names of changed top-level folders/files ---
+set "SCOPE="
+for /f "delims=" %%f in ('git diff --cached --name-only') do (
+    for /f "delims=/" %%d in ("%%f") do (
+        set "PART=%%d"
+        rem a path inside a folder looks like "folder/file.md" -> %%d is the folder
+        rem a plain root file has no slash -> %%d is "" (empty), then use the file name
+        if "!PART!"=="" set "PART=%%~nf"
+        rem a folder itself appears as "folder/" -> strip the trailing slash artefact
+        if "!PART!"=="%%f" if "!PART:~-1!"=="/" set "PART=!PART:~0,-1!"
+        echo !SCOPE! | findstr /i /c:"|!PART!|" >nul
+        if errorlevel 1 set "SCOPE=!SCOPE!|!PART!|"
+    )
+)
+
+if not defined SCOPE goto :clean
+
+rem --- 3. Commit message: argument, or "update <folders>" ---
 set "MSG=%~1"
-if "%MSG%"=="" set "MSG=update %DATE% %TIME%"
-
-rem --- 4. Commit ---
-git commit -m "%MSG%"
-if errorlevel 1 goto :fail
-
-rem --- 5. Push (sets upstream on first run) ---
-git push -u origin main
-if errorlevel 1 goto :fail
+if "%MSG%"=="" (
+    set "LIST=!SCOPE:|=%"
+    set "LIST=!LIST:|=, !"
+    set "MSG=update !LIST!"
+)
 
 echo.
-echo ============================================
-echo  Done: changes pushed to GitHub.
-echo ============================================
+echo Commit message: %MSG%
+echo.
+
+git commit -m "%MSG%" >>"%LOG%" 2>&1
+if errorlevel 1 goto :fail
+
+rem --- 4. Push (sets upstream on first run) ---
+git push -u origin main >>"%LOG%" 2>&1
+if errorlevel 1 goto :fail
+
+call :show_result
 exit /b 0
 
+rem ============================================================
+:clean
+rem Nothing staged: still check for commits that were never pushed
+echo Nothing to commit: working tree is clean.
+git push >>"%LOG%" 2>&1
+if errorlevel 1 goto :fail
+
+call :show_result
+exit /b 0
+
+rem ============================================================
+:show_result
+for /f "delims=" %%u in ('git remote get-url origin') do set "URL=%%u"
+for /f "delims=" %%h in ('git rev-parse --short HEAD') do set "HASH=%%h"
+set "WEB=!URL:.git=!"
+set "WEB=!WEB:git@github.com:=https://github.com/!"
+
+echo ============================================
+echo  Done: changes pushed to GitHub.
+echo  Commit:  !HASH!
+echo  Repo:    !WEB!
+echo  Commit:  !WEB!/commit/!HASH!
+echo  Log:     %LOG%
+echo ============================================
+echo Pushed !HASH! to !WEB!>>"%LOG%"
+exit /b 0
+
+rem ============================================================
 :fail
 echo.
 echo ============================================
@@ -60,5 +109,7 @@ echo  FAILED (exit code %errorlevel%). Nothing pushed.
 echo  Common causes:
 echo    - no access to github.com (403 / expired token)
 echo    - conflict: run "git pull --rebase" first
+echo  Full output: %LOG%
 echo ============================================
+echo FAILED with exit code %errorlevel% - see log above>>"%LOG%"
 exit /b 1
