@@ -49,14 +49,17 @@ for /f "delims=/" %%d in ('git diff --cached --name-only') do (
 )
 
 rem --- 4. Commit message: argument, or "update <folders>" ---
+rem NOTE: no ( ) block here on purpose. Inside a block cmd expands %VAR% once,
+rem before the block runs, so "if %MSG%=="" would always be true.
 set "MSG=%~1"
-if "%MSG%"=="" (
-    set "LIST=!SCOPE:|=%"
-    set "LIST=!LIST:|=, !"
-    if "!LIST!"=="" set "LIST=changes"
-    set "MSG=update !LIST!"
-)
+if not "%MSG%"=="" goto :have_msg
 
+set "LIST=!SCOPE:|=%"
+set "LIST=!LIST:|=, !"
+if "!LIST!"=="" set "LIST=changes"
+set "MSG=update !LIST!"
+
+:have_msg
 echo.
 echo Commit message: !MSG!
 echo.

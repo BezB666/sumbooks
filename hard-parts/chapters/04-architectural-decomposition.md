@@ -1,11 +1,11 @@
 # Глава 4. Architectural Decomposition (Архитектурная декомпозиция)
 
 - **PDF:** 101–123 (печать 89–111)
-- **Якоря:** Big Ball of Mud (большой ком грязи), afferent/efferent coupling (афферентное/эфферентное сцепление), abstractness (абстрактность), instability (неустойчивость), main sequence (главная последовательность), component-based decomposition (компонентная декомпозиция), tactical forking (тактическое ветвление)
+- **Якоря:** Big Ball of Mud (большой ком грязи), afferent/efferent coupling (афферентное/эфферентное сцепление), abstractness (абстрактность), instability (неустойчивость), main sequence (главная последовательность), zone of pain (зона боли), zone of uselessness (зона бесполезности), component-based decomposition (компонентная декомпозиция), tactical forking (тактическое ветвление)
 
 Go-ahead на distributed уже есть. Addison: «приложение как слон, не знаю, с чего начать». Austen предлагает «есть слона по кусочку»: сначала reporting (оно вешает систему), потом knowledge base, потом survey. Addison возражает: reporting без своей БД / data pump не лечит заморозки; куски «на глаз» — не метод. Глава даёт развилку: **вообще разложим ли код**, и если да — каким путём.
 
-Сначала честность: **Big Ball of Mud** (большой ком грязи, Foote) — без внутренней структуры паттерны нарезки не к чему. Метрики структуры (Yourdon/Constantine и Martin): **afferent/efferent coupling** (сколько зависят от модуля / от скольких зависит он), **abstractness** (абстрактность), **instability** (неустойчивость), **distance from the main sequence** (расстояние до главной последовательности) `D=|A+I−1|`. Много компонент в зонах **pain / uselessness** (боли / бесполезности) — сигнал не чинить внутренности до идеала, а обходить: грязь не станет сервисами от желания.
+Сначала честность: **Big Ball of Mud** (большой ком грязи, Foote) — без внутренней структуры паттерны нарезки не к чему. Метрики структуры (Yourdon/Constantine и Martin): **afferent/efferent coupling** (сколько зависят от модуля / от скольких зависит он), **abstractness** (абстрактность), **instability** (неустойчивость), **distance from the main sequence** (расстояние до главной последовательности) `D=|A+I−1|` (Equation 4-3, PDF 108). Много компонент в зонах **pain / uselessness** (боли / бесполезности) — сигнал не чинить внутренности до идеала, а обходить: грязь не станет сервисами от желания. Разбор метрики и расхождение формул с FSA — в карточке [concepts/distance-from-main-sequence.md](../../corpus/concepts/distance-from-main-sequence.md).
 
 Если код всё же разложим, два пути.
 

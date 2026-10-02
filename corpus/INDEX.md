@@ -42,6 +42,7 @@
 | Architecture quantum, fitness functions | [concepts/architecture-quantum.md](concepts/architecture-quantum.md) |
 | Architecture styles (layered … microservices) | [concepts/architecture-styles.md](concepts/architecture-styles.md) |
 | Trade-off analysis, granularity | [concepts/trade-offs.md](concepts/trade-offs.md) |
+| Distance from the main sequence, coupling metrics | [concepts/distance-from-main-sequence.md](concepts/distance-from-main-sequence.md) |
 
 Новые концепты (`concepts/`) и их индексацию добавляем **только по явному запросу**: поиск и конспектирование сами по себе в индекс ничего не пишут.
 

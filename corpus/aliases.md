@@ -27,3 +27,4 @@
 | Architecture quantum | independently deployable, fitness function, architecture characteristics, ilities, connascence | квант архитектуры, характеристики, фитнес-функция |
 | Architecture style | layered, pipeline, microkernel, service-based, event-driven, space-based, microservices | стиль архитектуры |
 | Trade-off | least worst, integrator, disintegrator, no best practices, service granularity | компромисс, зерно сервиса |
+| Distance from main sequence | distance from the main sequence, main sequence, D, abstractness, instability, afferent coupling, efferent coupling, Ca, Ce, zone of pain, zone of uselessness, rigid, stable | расстояние до главной последовательности, главная последовательность, абстрактность, неустойчивость, афферентное, эфферентное, зона боли, зона бесполезности |
