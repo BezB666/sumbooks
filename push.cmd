@@ -98,6 +98,7 @@ echo  Commit:  !WEB!/commit/!HASH!
 echo  Log:     %LOG%
 echo ============================================
 echo Pushed !HASH! to !WEB!/commit/!HASH!>>"%LOG%"
+call :delay
 endlocal
 exit /b 0
 
@@ -112,5 +113,17 @@ echo    - conflict: run "git pull --rebase" first
 echo  Full output: %LOG%
 echo ============================================
 echo FAILED with exit code %errorlevel% - see log above>>"%LOG%"
+call :delay
 endlocal
 exit /b 1
+
+rem ============================================================
+:delay
+rem Keep the console window open for 10 seconds so the result of
+rem a double-clicked run can be read before the window disappears.
+rem (timeout/ping are used instead of pause so no key press is needed;
+rem  >nul on the whole line also silences the "Waiting for 0 seconds" text.)
+echo.
+echo This window closes in 10 seconds...
+>"nul" 2>&1 (timeout /t 10 /nobreak || ping -n 11 127.0.0.1)
+exit /b 0
