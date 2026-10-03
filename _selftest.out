@@ -1,6 +1,0 @@
---- 1. old-style plain for /f call (expected to FAIL) ---
---- 2. find_git lookup, for /f child env proxy ---
-GIT=
---- 3. new-style for /f call via absolute path (expected to WORK) ---
---- 4. same, run through the real :find_git label of push.cmd ---
-find_git returned GIT=C:\Program Files\Git\cmd\git.exe
